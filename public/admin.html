@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>𝔾𝕆𝔸𝕋 - پنل ادمین</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { direction: rtl; font-family: Arial, sans-serif; }
+    .navbar { position: fixed; top: 0; width: 100%; z-index: 1000; }
+    .footer { position: fixed; bottom: 0; width: 100%; text-align: center; padding: 10px; background: #f8f9fa; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">𝔾𝕆𝔸𝕋</a>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <h2>افزودن محتوا</h2>
+    <form id="content-form">
+      <div class="mb-3">
+        <label class="form-label">نوع محتوا (فیلم/سریال/انیمه)</label>
+        <input type="text" class="form-control" id="type" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">لینک پوستر</label>
+        <input type="text" class="form-control" id="poster" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">نام</label>
+        <input type="text" class="form-control" id="title" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">خلاصه داستان</label>
+        <textarea class="form-control" id="summary" required></textarea>
+      </div>
+      <div id="links-container">
+        <div class="link-group mb-3">
+          <h4>فصل 1</h4>
+          <div class="mb-3">
+            <label class="form-label">لینک 720p</label>
+            <input type="text" class="form-control" id="link-0-720p" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">لینک 1080p</label>
+            <input type="text" class="form-control" id="link-0-1080p" required>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary mb-3" id="add-season">افزودن فصل جدید</button>
+      <button type="submit" class="btn btn-success">افزودن محتوا</button>
+    </form>
+  </div>
+
+  <div class="footer">
+    <p>حقوق سایت محفوظ است © 2025 𝔾𝕆𝔸𝕋</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let seasonCount = 1;
+    document.getElementById('add-season').addEventListener('click', () => {
+      seasonCount++;
+      const container = document.getElementById('links-container');
+      const newGroup = document.createElement('div');
+      newGroup.className = 'link-group mb-3';
+      newGroup.innerHTML = `
+        <h4>فصل ${seasonCount}</h4>
+        <div class="mb-3">
+          <label class="form-label">لینک 720p</label>
+          <input type="text" class="form-control" id="link-${seasonCount}-720p" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">لینک 1080p</label>
+          <input type="text" class="form-control" id="link-${seasonCount}-1080p" required>
+        </div>
+      `;
+      container.appendChild(newGroup);
+    });
+
+    document.getElementById('content-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const links = [];
+      for (let i = 0; i <= seasonCount; i++) {
+        links.push({
+          season: i + 1,
+          links: {
+            '720p': document.getElementById(`link-${i}-720p`).value,
+            '1080p': document.getElementById(`link-${i}-1080p`).value
+          }
+        });
+      }
+      const content = {
+        type: document.getElementById('type').value,
+        poster: document.getElementById('poster').value,
+        title: document.getElementById('title').value,
+        summary: document.getElementById('summary').value,
+        links: links
+      };
+      await fetch('/api/add-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      }).then(res => res.json()).then(data => alert(data.message));
+    });
+  </script>
