@@ -1,48 +1,83 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>𝔾𝕆𝔸𝕋 - جزئیات</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { direction: rtl; font-family: Arial, sans-serif; }
-    .navbar { position: fixed; top: 0; width: 100%; z-index: 1000; }
-    .footer { position: fixed; bottom: 0; width: 100%; text-align: center; padding: 10px; background: #f8f9fa; }
+    .movie-container {
+      background: linear-gradient(to right, #1e3a8a, #3b82f6);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .poster img {
+      transition: transform 0.3s ease;
+    }
+    .poster img:hover {
+      transform: scale(1.1);
+    }
   </style>
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/">𝔾𝕆𝔸𝕋</a>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+  <nav class="fixed top-0 w-full p-4 shadow-lg z-10 bg-blue-900">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">𝔾𝕆𝔸𝕋</h1>
+      <div>
+        <a href="../index.html" class="mx-2 hover:text-blue-300">بازگشت به خانه</a>
+      </div>
     </div>
   </nav>
-
-  <div class="container mt-5" id="movie-details">
-    <h1 id="movie-title"></h1>
-    <img id="movie-poster" style="width: 200px;">
-    <p id="movie-summary"></p>
-    <div id="movie-links"></div>
-  </div>
-
-  <div class="footer">
+  <main class="container mx-auto mt-20 mb-10 px-4 flex-grow">
+    <div class="movie-container mx-auto max-w-4xl">
+      <div class="flex flex-col md:flex-row items-center gap-6">
+        <div class="poster w-full md:w-1/3">
+          <img id="poster" src="" alt="پوستر" class="w-full rounded-lg">
+        </div>
+        <div class="w-full md:w-2/3">
+          <h2 id="title" class="text-3xl font-bold mb-4"></h2>
+          <p id="summary" class="text-gray-300 mb-4"></p>
+          <div id="download-links" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer py-4 text-center bg-gray-800">
     <p>حقوق سایت محفوظ است © 2025 𝔾𝕆𝔸𝕋</p>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </footer>
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
     fetch(`/api/content/${id}`)
       .then(response => response.json())
       .then(data => {
-        document.getElementById('movie-title').textContent = data.title;
-        document.getElementById('movie-poster').src = data.poster;
-        document.getElementById('movie-summary').textContent = data.summary;
-        const linksDiv = document.getElementById('movie-links');
-        data.links.forEach(link => {
-          linksDiv.innerHTML += `<p>فصل ${link.season}: <a href="${link.links['720p']}">720p</a> | <a href="${link.links['1080p']}">1080p</a></p>`;
-        });
+        document.getElementById('poster').src = data.poster;
+        document.getElementById('title').textContent = data.title;
+        document.getElementById('summary').textContent = `خلاصه: ${data.summary}`;
+        const downloadLinks = document.getElementById('download-links');
+        if (data.type === 'movie') {
+          downloadLinks.innerHTML = `
+            <a href="${data.links['720p']}" class="block text-blue-400 hover:text-blue-300">دانلود 720p</a>
+            <a href="${data.links['1080p']}" class="block text-blue-400 hover:text-blue-300">دانلود 1080p</a>
+          `;
+        } else if (data.type === 'series') {
+          let linksHTML = '';
+          for (const [season, links] of Object.entries(data.links)) {
+            linksHTML += `
+              <div class="mb-4">
+                <h3 class="text-lg font-bold">فصل ${season}</h3>
+                <a href="${links['720p']}" class="block text-blue-400 hover:text-blue-300">دانلود 720p</a>
+                <a href="${links['1080p']}" class="block text-blue-400 hover:text-blue-300">دانلود 1080p</a>
+              </div>
+            `;
+          }
+          downloadLinks.innerHTML = linksHTML;
+        }
+      })
+      .catch(error => {
+        document.getElementById('title').textContent = 'یافت نشد';
+        document.getElementById('summary').textContent = 'محتوایی با این شناسه یافت نشد.';
       });
   </script>
+</body>
 </html>
